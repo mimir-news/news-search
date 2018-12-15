@@ -36,8 +36,15 @@ func (ns *newsSvc) GetStockNews(symbol string, since time.Duration, limit int) (
 	return articles, nil
 }
 
+// GetNews gets the highest ranked news after a given time.
 func (ns *newsSvc) GetNews(since time.Duration, limit int) ([]news.Article, error) {
-	return nil, nil
+	after := calcAfter(since)
+	articles, err := ns.articleRepo.FindAllArticles(after, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	return articles, nil
 }
 
 func calcAfter(since time.Duration) time.Time {

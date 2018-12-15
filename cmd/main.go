@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
 	"github.com/mimir-news/pkg/httputil"
 	"github.com/mimir-news/pkg/httputil/auth"
 )
@@ -26,7 +27,7 @@ func newServer(e *env, conf config) *http.Server {
 	r := newRouter(e, conf)
 
 	r.GET("/v1/news/:symbol", e.handleGetStockNews)
-	r.GET("/v1/news", e.throwNotImplemented)
+	r.GET("/v1/news", e.handleGetNews)
 
 	return &http.Server{
 		Addr:    ":" + conf.port,

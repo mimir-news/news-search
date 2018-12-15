@@ -3,11 +3,8 @@ package main
 import (
 	"database/sql"
 	"log"
-	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"github.com/mimir-news/news-search/pkg/service"
-	"github.com/mimir-news/pkg/httputil"
 )
 
 type env struct {
@@ -32,8 +29,4 @@ func (e *env) close() {
 	if err != nil {
 		log.Println(err)
 	}
-}
-
-func (e *env) throwNotImplemented(c *gin.Context) {
-	c.Error(httputil.NewError("Not implemented", http.StatusNotImplemented))
 }

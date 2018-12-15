@@ -5,11 +5,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mimir-news/news-search/pkg/domain"
-
-	"github.com/mimir-news/pkg/httputil"
-
 	"github.com/gin-gonic/gin"
+	"github.com/mimir-news/news-search/pkg/domain"
+	"github.com/mimir-news/pkg/httputil"
 )
 
 func (e *env) handleGetStockNews(c *gin.Context) {
@@ -21,6 +19,22 @@ func (e *env) handleGetStockNews(c *gin.Context) {
 
 	symbol := c.Param("symbol")
 	articles, err := e.newsSvc.GetStockNews(symbol, period, limit)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, articles)
+}
+
+func (e *env) handleGetNews(c *gin.Context) {
+	period, limit, err := getPeriodAndLimit(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	articles, err := e.newsSvc.GetNews(period, limit)
 	if err != nil {
 		c.Error(err)
 		return

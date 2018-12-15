@@ -9,17 +9,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mimir-news/pkg/schema/news"
-	"github.com/stretchr/testify/assert"
-
 	"github.com/mimir-news/news-search/pkg/repository"
 	"github.com/mimir-news/news-search/pkg/service"
-
 	"github.com/mimir-news/pkg/httputil/auth"
 	"github.com/mimir-news/pkg/id"
+	"github.com/mimir-news/pkg/schema/news"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestHandleGetNews(t *testing.T) {
+func TestHandleGetStockNews(t *testing.T) {
 	assert := assert.New(t)
 
 	userID := id.New()
@@ -66,6 +64,59 @@ func TestHandleGetNews(t *testing.T) {
 	assert.Equal(1, articeRepo.FindArticlesInvocations)
 	assert.Equal(symbol, articeRepo.FindArticlesArgSymbol)
 	assert.Equal(6, articeRepo.FindArticlesArgLimit)
+
+	err = json.NewDecoder(res.Body).Decode(&articles)
+	assert.NoError(err)
+	assert.Equal(len(expectedArtices), len(articles))
+	for i, ea := range expectedArtices {
+		assert.Equal(ea.ID, articles[i].ID, i)
+	}
+}
+
+func TestHandleGetNews(t *testing.T) {
+	assert := assert.New(t)
+
+	userID := id.New()
+	clientID := id.New()
+
+	conf := getTestConfig()
+	server := newServer(getTestEnv(conf, nil), conf)
+	token := getTestToken(conf, userID, clientID)
+
+	baseRoute := "/v1/news"
+	testInvalidNewsParameters(clientID, token, baseRoute, server.Handler, t)
+
+	expectedArtices := []news.Article{
+		news.Article{ID: id.New()},
+		news.Article{ID: id.New()},
+	}
+	articeRepo := &repository.MockArticleRepo{
+		FindAllArticlesArticles: expectedArtices,
+	}
+	server = newServer(getTestEnv(conf, articeRepo), conf)
+
+	req := createTestRequest(clientID, token, baseRoute+"?period=2D")
+	res := performTestRequest(server.Handler, req)
+
+	assert.Equal(http.StatusOK, res.Code)
+	assert.Equal(1, articeRepo.FindAllArticlesInvocations)
+	assert.Equal(defaultSearchLimit, articeRepo.FindAllArticlesArgLimit)
+
+	articles := make([]news.Article, 0)
+	err := json.NewDecoder(res.Body).Decode(&articles)
+	assert.NoError(err)
+	assert.Equal(len(expectedArtices), len(articles))
+	for i, ea := range expectedArtices {
+		assert.Equal(ea.ID, articles[i].ID, i)
+	}
+
+	articeRepo.UnsetArgs()
+	req = createTestRequest(clientID, token, baseRoute+"?limit=6")
+	res = performTestRequest(server.Handler, req)
+
+	assert.Equal(http.StatusOK, res.Code)
+	assert.Equal(1, articeRepo.FindAllArticlesInvocations)
+	assert.Equal(6, articeRepo.FindAllArticlesArgLimit)
 
 	err = json.NewDecoder(res.Body).Decode(&articles)
 	assert.NoError(err)
