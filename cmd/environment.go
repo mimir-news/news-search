@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"log"
 
+	"github.com/mimir-news/news-search/pkg/repository"
+
 	"github.com/mimir-news/news-search/pkg/service"
 )
 
@@ -18,9 +20,11 @@ func setupEnv(conf config) *env {
 		log.Fatal(err)
 	}
 
+	articleRepo := repository.NewArticleRepo(db)
+
 	return &env{
 		db:      db,
-		newsSvc: service.NewNewsService(nil),
+		newsSvc: service.NewNewsService(articleRepo),
 	}
 }
 

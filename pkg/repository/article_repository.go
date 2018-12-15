@@ -1,15 +1,89 @@
 package repository
 
 import (
+	"database/sql"
+	"strings"
 	"time"
 
 	"github.com/mimir-news/pkg/schema/news"
+)
+
+const (
+	keywordDelimiter = ","
 )
 
 // ArticleRepo interface for interacting with persisted articles.
 type ArticleRepo interface {
 	FindArticles(symbol string, after time.Time, limit int) ([]news.Article, error)
 	FindAllArticles(after time.Time, limit int) ([]news.Article, error)
+}
+
+// NewArticleRepo creates new ArticleRepo using default implementation.
+func NewArticleRepo(db *sql.DB) ArticleRepo {
+	return &pgArticleRepo{
+		db: db,
+	}
+}
+
+// pgArticleRepo postgres implementation of ArticleRepo.
+type pgArticleRepo struct {
+	db *sql.DB
+}
+
+const findStockArticlesQuery = `
+	SELECT a.id, a.url, a.title, a.keywords, a.article_date FROM article a
+		INNER JOIN article_cluster c ON c.lead_article_id = a.id
+		WHERE c.symbol = $1 
+		AND c.article_date >= $2
+		ORDER BY c.score DESC
+		LIMIT $3`
+
+func (ar *pgArticleRepo) FindArticles(symbol string, after time.Time, limit int) ([]news.Article, error) {
+	rows, err := ar.db.Query(findStockArticlesQuery, symbol, after, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return mapRowsToArticles(rows)
+}
+
+const findArticlesQuery = `
+	SELECT a.id, a.url, a.title, a.keywords, a.article_date FROM article a
+		INNER JOIN article_cluster c ON c.lead_article_id = a.id
+		AND c.article_date >= $2
+		ORDER BY c.score DESC
+		LIMIT $3`
+
+func (ar *pgArticleRepo) FindAllArticles(after time.Time, limit int) ([]news.Article, error) {
+	rows, err := ar.db.Query(findArticlesQuery, after, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return mapRowsToArticles(rows)
+}
+
+func mapRowsToArticles(rows *sql.Rows) ([]news.Article, error) {
+	articles := make([]news.Article, 0)
+	for rows.Next() {
+		var a news.Article
+		var keywordStr string
+		err := rows.Scan(&a.ID, &a.URL, &a.Title, &keywordStr, &a.ArticleDate)
+		if err != nil {
+			return nil, err
+		}
+
+		a.Keywords = splitKeywords(keywordStr)
+		articles = append(articles, a)
+	}
+
+	return articles, nil
+}
+
+func splitKeywords(joinedKeywords string) []string {
+	return strings.Split(joinedKeywords, keywordDelimiter)
 }
 
 // MockArticleRepo mock implementation of ArticleRepo.
