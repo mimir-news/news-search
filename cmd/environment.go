@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/mimir-news/news-search/pkg/repository"
-
 	"github.com/mimir-news/news-search/pkg/service"
 )
 
