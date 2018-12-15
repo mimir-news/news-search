@@ -9,8 +9,8 @@ import (
 // Common errors that can occur in parsing a period.
 var (
 	ErrInvalidPeriod           = errors.New("invalid period")
-	ErrInvalidPeriodQuantifier = errors.New("invalid period quantifier must be an integer")
-	ErrInvalidPeriodUnit       = errors.New("invalid period unit must be D, W, M or Y")
+	ErrInvalidPeriodQuantifier = errors.New("invalid period quantifier, must be a positive integer")
+	ErrInvalidPeriodUnit       = errors.New("invalid period unit, must be D, W, M or Y")
 )
 
 // Base durations.
@@ -64,7 +64,7 @@ func parsePeriod(periodStr string) (period, error) {
 	}
 
 	q, err := strconv.Atoi(periodStr[:strlen-1])
-	if err != nil {
+	if err != nil || q < 1 {
 		return period{}, ErrInvalidPeriodQuantifier
 	}
 

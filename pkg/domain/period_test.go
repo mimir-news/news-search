@@ -54,6 +54,14 @@ func TestGetDuration(t *testing.T) {
 			str: "1X",
 			err: domain.ErrInvalidPeriodUnit,
 		},
+		testCase{
+			str: "-2Y",
+			err: domain.ErrInvalidPeriodQuantifier,
+		},
+		testCase{
+			str: "0M",
+			err: domain.ErrInvalidPeriodQuantifier,
+		},
 	}
 
 	assert := assert.New(t)

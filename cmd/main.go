@@ -25,7 +25,7 @@ func main() {
 func newServer(e *env, conf config) *http.Server {
 	r := newRouter(e, conf)
 
-	r.GET("/v1/news/:symbol", e.throwNotImplemented)
+	r.GET("/v1/news/:symbol", e.handleGetStockNews)
 	r.GET("/v1/news", e.throwNotImplemented)
 
 	return &http.Server{

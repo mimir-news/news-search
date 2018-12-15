@@ -6,11 +6,13 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mimir-news/news-search/pkg/service"
 	"github.com/mimir-news/pkg/httputil"
 )
 
 type env struct {
-	db *sql.DB
+	db      *sql.DB
+	newsSvc service.NewsService
 }
 
 func setupEnv(conf config) *env {
@@ -20,7 +22,8 @@ func setupEnv(conf config) *env {
 	}
 
 	return &env{
-		db: db,
+		db:      db,
+		newsSvc: service.NewNewsService(nil),
 	}
 }
 
