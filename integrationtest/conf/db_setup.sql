@@ -1,0 +1,3 @@
+CREATE DATABASE newsranker;
+CREATE ROLE newsranker WITH LOGIN PASSWORD 'password';
+GRANT ALL PRIVILEGES ON DATABASE newsranker TO newsranker;
