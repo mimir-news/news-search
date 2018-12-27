@@ -50,7 +50,7 @@ INSERT INTO article(id, url, title, keywords, reference_score, article_date)
 VALUES 
   ('9dd44a5c-41be-47a8-9bec-cd6398541f1f', 'https://url1.com', 'Title 1', 'w11,w12,w13', 0.15, '2018-12-27'),
   ('cef50e4b-e08c-444e-8ab8-a7092102a62f', 'https://url2.com', 'Title 2', 'w21', 0.2, '2018-12-27'),
-  ('b0885e4e-b54a-471d-b34d-d83433d77084', 'https://url3.com', 'Title 3', '', 0.1, '2018-12-27');
+  ('b0885e4e-b54a-471d-b34d-d83433d77084', 'https://url3.com', 'Title 3', NULL, 0.1, '2018-12-27');
 
 INSERT INTO article_cluster(cluster_hash, score, lead_article_id, article_date, symbol)
 VALUES 

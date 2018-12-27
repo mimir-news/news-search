@@ -69,21 +69,25 @@ func mapRowsToArticles(rows *sql.Rows) ([]news.Article, error) {
 	articles := make([]news.Article, 0)
 	for rows.Next() {
 		var a news.Article
-		var keywordStr string
-		err := rows.Scan(&a.ID, &a.URL, &a.Title, &keywordStr, &a.ArticleDate)
+		var keywords sql.NullString
+		err := rows.Scan(&a.ID, &a.URL, &a.Title, &keywords, &a.ArticleDate)
 		if err != nil {
 			return nil, err
 		}
 
-		a.Keywords = splitKeywords(keywordStr)
+		a.Keywords = splitKeywords(keywords)
 		articles = append(articles, a)
 	}
 
 	return articles, nil
 }
 
-func splitKeywords(joinedKeywords string) []string {
-	return strings.Split(joinedKeywords, keywordDelimiter)
+func splitKeywords(keywords sql.NullString) []string {
+	if !keywords.Valid {
+		return make([]string, 0)
+	}
+
+	return strings.Split(keywords.String, keywordDelimiter)
 }
 
 // MockArticleRepo mock implementation of ArticleRepo.
