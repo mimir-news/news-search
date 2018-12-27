@@ -44,5 +44,10 @@ func newRouter(e *env, conf config) *gin.Engine {
 }
 
 func (e *env) healthCheck() error {
-	return e.db.Ping()
+	rows, err := e.db.Query("SELECT 1")
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return rows.Close()
 }

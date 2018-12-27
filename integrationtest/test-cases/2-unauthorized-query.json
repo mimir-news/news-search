@@ -1,0 +1,11 @@
+{
+    "name": "query news without authtoken",
+    "request": {
+        "method": "GET",
+        "path": "/v1/news/AAPL?period=1D&limit=5",
+        "useToken": false
+    },
+    "response": {
+        "status": 401
+    }
+}

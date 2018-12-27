@@ -1,0 +1,11 @@
+{
+    "name": "query GOOG news",
+    "request": {
+        "method": "GET",
+        "path": "/v1/news/GOOG?period=5W&limit=10",
+        "useToken": true
+    },
+    "response": {
+        "status": 200
+    }
+}

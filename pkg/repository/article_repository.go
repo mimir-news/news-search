@@ -51,9 +51,9 @@ func (ar *pgArticleRepo) FindArticles(symbol string, after time.Time, limit int)
 const findArticlesQuery = `
 	SELECT a.id, a.url, a.title, a.keywords, a.article_date FROM article a
 		INNER JOIN article_cluster c ON c.lead_article_id = a.id
-		AND c.article_date >= $2
+		AND c.article_date >= $1
 		ORDER BY c.score DESC
-		LIMIT $3`
+		LIMIT $2`
 
 func (ar *pgArticleRepo) FindAllArticles(after time.Time, limit int) ([]news.Article, error) {
 	rows, err := ar.db.Query(findArticlesQuery, after, limit)

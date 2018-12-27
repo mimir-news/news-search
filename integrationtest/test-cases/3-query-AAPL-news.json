@@ -1,0 +1,11 @@
+{
+    "name": "query AAPL news",
+    "request": {
+        "method": "GET",
+        "path": "/v1/news/AAPL?period=1D&limit=5",
+        "useToken": true
+    },
+    "response": {
+        "status": 200
+    }
+}

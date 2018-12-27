@@ -1,0 +1,11 @@
+{
+    "name": "query MISSING news",
+    "request": {
+        "method": "GET",
+        "path": "/v1/news/MISSING?period=1Y&limit=1",
+        "useToken": true
+    },
+    "response": {
+        "status": 200
+    }
+}

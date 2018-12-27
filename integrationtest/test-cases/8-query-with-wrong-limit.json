@@ -1,0 +1,11 @@
+{
+    "name": "query with wrong limit",
+    "request": {
+        "method": "GET",
+        "path": "/v1/news/AAPL?limit=500",
+        "useToken": true
+    },
+    "response": {
+        "status": 400
+    }
+}

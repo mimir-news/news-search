@@ -9,4 +9,5 @@
 *.out
 vendor
 cmd/cmd
+cmd/start.sh
 integrationtest/__pycache__

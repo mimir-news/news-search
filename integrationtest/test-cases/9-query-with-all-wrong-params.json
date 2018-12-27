@@ -1,0 +1,11 @@
+{
+    "name": "query with all parameters wrong",
+    "request": {
+        "method": "GET",
+        "path": "/v1/news/AAPL?period=-1D&limit=0",
+        "useToken": true
+    },
+    "response": {
+        "status": 400
+    }
+}
