@@ -1,0 +1,61 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: news-search
+  labels:
+    app: news-search
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: news-search
+    spec:
+      containers:
+        - name: news-search
+          image: eu.gcr.io/mimir-185212/news-search:1.0
+          ports:
+            - name: svc-port
+              containerPort: 8080
+          env:
+            - name: SERVICE_PORT
+              value: "8080"
+            - name: DB_HOST
+              value: mimir-db
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: newsranker
+            - name: DB_USERNAME
+              value: newssearch
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: newssearch.password
+            - name: TOKEN_SECRETS_FILE
+              value: "/etc/mimir/token_secrets.json"
+          volumeMounts:
+            - name: token-secrets
+              mountPath: /etc/mimir/token_secrets.json
+              subPath: token_secrets.json
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: svc-port
+            initialDelaySeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: svc-port
+            initialDelaySeconds: 25
+          imagePullPolicy: Always
+      volumes:
+        - name: token-secrets
+          secret:
+            secretName: token-secret
+            items:
+              - key: content
+                path: token_secrets.json
+      imagePullSecrets:
+        - name: gcr-json-key
