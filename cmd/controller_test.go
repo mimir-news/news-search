@@ -21,15 +21,14 @@ func TestHandleGetStockNews(t *testing.T) {
 	assert := assert.New(t)
 
 	userID := id.New()
-	clientID := id.New()
 	symbol := "TEST"
 
 	conf := getTestConfig()
 	server := newServer(getTestEnv(conf, nil), conf)
-	token := getTestToken(conf, userID, clientID)
+	token := getTestToken(conf, userID)
 
 	baseRoute := fmt.Sprintf("/v1/news/%s", symbol)
-	testInvalidNewsParameters(clientID, token, baseRoute, server.Handler, t)
+	testInvalidNewsParameters(token, baseRoute, server.Handler, t)
 
 	expectedArtices := []news.Article{
 		news.Article{ID: id.New()},
@@ -40,7 +39,7 @@ func TestHandleGetStockNews(t *testing.T) {
 	}
 	server = newServer(getTestEnv(conf, articeRepo), conf)
 
-	req := createTestRequest(clientID, token, baseRoute+"?period=2D")
+	req := createTestRequest(token, baseRoute+"?period=2D")
 	res := performTestRequest(server.Handler, req)
 
 	assert.Equal(http.StatusOK, res.Code)
@@ -57,7 +56,7 @@ func TestHandleGetStockNews(t *testing.T) {
 	}
 
 	articeRepo.UnsetArgs()
-	req = createTestRequest(clientID, token, baseRoute+"?limit=6")
+	req = createTestRequest(token, baseRoute+"?limit=6")
 	res = performTestRequest(server.Handler, req)
 
 	assert.Equal(http.StatusOK, res.Code)
@@ -77,14 +76,13 @@ func TestHandleGetNews(t *testing.T) {
 	assert := assert.New(t)
 
 	userID := id.New()
-	clientID := id.New()
 
 	conf := getTestConfig()
 	server := newServer(getTestEnv(conf, nil), conf)
-	token := getTestToken(conf, userID, clientID)
+	token := getTestToken(conf, userID)
 
 	baseRoute := "/v1/news"
-	testInvalidNewsParameters(clientID, token, baseRoute, server.Handler, t)
+	testInvalidNewsParameters(token, baseRoute, server.Handler, t)
 
 	expectedArtices := []news.Article{
 		news.Article{ID: id.New()},
@@ -95,7 +93,7 @@ func TestHandleGetNews(t *testing.T) {
 	}
 	server = newServer(getTestEnv(conf, articeRepo), conf)
 
-	req := createTestRequest(clientID, token, baseRoute+"?period=2D")
+	req := createTestRequest(token, baseRoute+"?period=2D")
 	res := performTestRequest(server.Handler, req)
 
 	assert.Equal(http.StatusOK, res.Code)
@@ -111,7 +109,7 @@ func TestHandleGetNews(t *testing.T) {
 	}
 
 	articeRepo.UnsetArgs()
-	req = createTestRequest(clientID, token, baseRoute+"?limit=6")
+	req = createTestRequest(token, baseRoute+"?limit=6")
 	res = performTestRequest(server.Handler, req)
 
 	assert.Equal(http.StatusOK, res.Code)
@@ -126,25 +124,25 @@ func TestHandleGetNews(t *testing.T) {
 	}
 }
 
-func testInvalidNewsParameters(clientID, token, baseRoute string, handler http.Handler, t *testing.T) {
+func testInvalidNewsParameters(token, baseRoute string, handler http.Handler, t *testing.T) {
 	assert := assert.New(t)
 
-	req := createTestRequest(clientID, token, baseRoute+"?period=0W&limit=3")
+	req := createTestRequest(token, baseRoute+"?period=0W&limit=3")
 	res := performTestRequest(handler, req)
 
 	assert.Equal(http.StatusBadRequest, res.Code)
 
-	req = createTestRequest(clientID, token, baseRoute+"?period=D&limit=3")
+	req = createTestRequest(token, baseRoute+"?period=D&limit=3")
 	res = performTestRequest(handler, req)
 
 	assert.Equal(http.StatusBadRequest, res.Code)
 
-	req = createTestRequest(clientID, token, baseRoute+"?period=1D&limit=0")
+	req = createTestRequest(token, baseRoute+"?period=1D&limit=0")
 	res = performTestRequest(handler, req)
 
 	assert.Equal(http.StatusBadRequest, res.Code)
 
-	req = createTestRequest(clientID, token, baseRoute+"?period=1D&limit=50")
+	req = createTestRequest(token, baseRoute+"?period=1D&limit=50")
 	res = performTestRequest(handler, req)
 
 	assert.Equal(http.StatusBadRequest, res.Code)
@@ -164,19 +162,21 @@ func getTestEnv(cfg config, articleRepo repository.ArticleRepo) *env {
 
 func getTestConfig() config {
 	return config{
-		tokenSecret:          "my-secret",
-		tokenVerificationKey: "my-verification-key",
+		JWTCredentials: auth.JWTCredentials{
+			Issuer: "news-search-test-issuer",
+			Secret: "my-secret",
+		},
 	}
 }
 
 func getTestSigner(cfg config) auth.Signer {
-	return auth.NewSigner(cfg.tokenSecret, cfg.tokenVerificationKey, 24*time.Hour)
+	return auth.NewSigner(cfg.JWTCredentials, 24*time.Hour)
 }
 
-func getTestToken(cfg config, userID, clientID string) string {
+func getTestToken(cfg config, userID string) string {
 	signer := getTestSigner(cfg)
 
-	token, err := signer.New(id.New(), userID, clientID)
+	token, err := signer.Sign(id.New(), auth.User{ID: userID, Role: auth.UserRole})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -184,15 +184,12 @@ func getTestToken(cfg config, userID, clientID string) string {
 	return token
 }
 
-func createTestRequest(clientID, token, route string) *http.Request {
+func createTestRequest(token, route string) *http.Request {
 	req, err := http.NewRequest(http.MethodGet, route, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if clientID != "" {
-		req.Header.Set(auth.ClientIDKey, clientID)
-	}
 	if token != "" {
 		bearerToken := auth.AuthTokenPrefix + token
 		req.Header.Set(auth.AuthHeaderKey, bearerToken)

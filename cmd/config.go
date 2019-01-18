@@ -1,10 +1,10 @@
 package main
 
 import (
-	"encoding/json"
-	"io/ioutil"
 	"log"
 	"os"
+
+	"github.com/mimir-news/pkg/httputil/auth"
 
 	"github.com/mimir-news/news-search/pkg/domain"
 	"github.com/mimir-news/pkg/dbutil"
@@ -13,7 +13,7 @@ import (
 // Service metadata.
 const (
 	ServiceName    = "news-search"
-	ServiceVersion = "0.1"
+	ServiceVersion = "1.1"
 )
 
 const (
@@ -27,41 +27,33 @@ var (
 )
 
 type config struct {
-	db                   dbutil.Config
-	port                 string
-	tokenSecret          string
-	tokenVerificationKey string
+	db             dbutil.Config
+	port           string
+	JWTCredentials auth.JWTCredentials
 }
 
 func getConfig() config {
-	tokenSecret := getSecret(mustGetenv("TOKEN_SECRETS_FILE"))
+	jwtCredentials := getJWTCredentials(mustGetenv("JWT_CREDENTIALS_FILE"))
 
 	return config{
-		db:                   dbutil.MustGetConfig("DB"),
-		tokenSecret:          tokenSecret.Secret,
-		tokenVerificationKey: tokenSecret.Key,
-		port:                 mustGetenv("SERVICE_PORT"),
+		db:             dbutil.MustGetConfig("DB"),
+		port:           mustGetenv("SERVICE_PORT"),
+		JWTCredentials: jwtCredentials,
 	}
 }
 
-type secret struct {
-	Secret string `json:"secret"`
-	Key    string `json:"key"`
-}
-
-func getSecret(filename string) secret {
-	content, err := ioutil.ReadFile(filename)
+func getJWTCredentials(filename string) auth.JWTCredentials {
+	f, err := os.Open(filename)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	var s secret
-	err = json.Unmarshal(content, &s)
+	credentials, err := auth.ReadJWTCredentials(f)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return s
+	return credentials
 }
 
 func mustGetenv(key string) string {
