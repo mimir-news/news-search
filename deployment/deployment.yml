@@ -58,10 +58,10 @@ spec:
           subPath: token_secrets.json
         resources:
           requests:
-            memory: 50Mi
-            cpu: "50m"
+            memory: 80Mi
+            cpu: "60m"
           limits:
-            memory: 60Mi
+            memory: 80Mi
             cpu: "60m"
         imagePullPolicy: Always
       - name: linkerd-proxy
