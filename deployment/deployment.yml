@@ -56,13 +56,6 @@ spec:
         - mountPath: /etc/mimir/token_secrets.json
           name: token-secrets
           subPath: token_secrets.json
-        resources:
-          requests:
-            memory: 80Mi
-            cpu: "60m"
-          limits:
-            memory: 80Mi
-            cpu: "60m"
         imagePullPolicy: Always
       - name: linkerd-proxy
         image: gcr.io/linkerd-io/proxy:stable-2.1.0
